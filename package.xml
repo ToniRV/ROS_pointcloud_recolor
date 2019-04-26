@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <name>pointcloud_recolor</name>
+  <version>0.0.1</version>
+  <description>Parses a pointcloud and a registered color image and outputs a pointcloud with the colors of the given image</description>
+
+  <maintainer email="arosinol@mit.edu">Antoni Rosinol</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <!-- List dependencies to system libs and other catkin packages here. -->
+  <build_depend>rospy</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>glog_catkin</build_depend>
+</package>
