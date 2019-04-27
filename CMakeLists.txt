@@ -8,10 +8,10 @@ catkin_python_setup()
 
 #cs_add_library(example_library src/example-library.cc)
 
-#cs_add_executable(example_executable src/main.cc)
-#target_link_libraries(example_executable example_library)
+cs_add_executable(pointcloud_recolor src/pointcloud_recolor.cpp)
+#target_link_libraries(pointcloud_recolor example_library)
 
-#cs_install()
+cs_install()
 
 cs_install_scripts(scripts/recolor.py)
 
