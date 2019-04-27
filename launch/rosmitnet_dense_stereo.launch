@@ -1,0 +1,18 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+  <group ns="stereo">
+    <node name="stereo_image_proc" type="stereo_image_proc" pkg="stereo_image_proc" output="screen">
+      <!--Remap rectified output to a throwaway channel since the input is already rectified. See issue #72 -->
+      <!--
+      <remap from="left/image_rect_color" to="/dev/null/left_image"/>
+      <remap from="right/image_rect_color" to="/dev/null/right_image"/>
+-->
+
+      <remap from="left/image_raw" to="/kitti/camera_color_left/image_raw"/>
+      <remap from="right/image_raw" to="/kitti/camera_color_right/image_raw"/>
+
+      <remap from="left/camera_info" to="/kitti/camera_color_left/camera_info"/>
+      <remap from="right/camera_info" to="/kitti/camera_color_right/camera_info"/>
+    </node>
+  </group>
+</launch>
