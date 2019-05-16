@@ -31,7 +31,7 @@ class PointcloudRecolor {
 
 void setupRos() {
   // Set up publisher.
-  pointcloud_recolor_pub_ = nh_private_.advertise<PointCloud2>(
+  pointcloud_recolor_pub_ = nh_.advertise<PointCloud2>(
                               "pointcloud_recolor_out", 1, true);
 
   // Set up subscriber.
