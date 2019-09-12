@@ -16,7 +16,6 @@
 using namespace sensor_msgs;
 using namespace message_filters;
 
-
 class PointcloudRecolor {
  public:
   PointcloudRecolor(const ros::NodeHandle& nh,
@@ -42,7 +41,7 @@ void setupRos() {
   void syncCallback(const ImageConstPtr& image,
                     const PointCloud2ConstPtr& pointcloud) {
     // Solve all of perception here...
-    ROS_ERROR_STREAM("Received image and pointcloud.");
+    // ROS_ERROR_STREAM("Received image and pointcloud.");
 
     // Loop over each entry in the pointcloud and change the rgb data field for
     // the corresponding one in the given image.
@@ -54,8 +53,10 @@ void setupRos() {
 
     // Check image encoding: for now we need BGR8.
     // Alternatively, modify the for loop to accept others such as BGR8.
-    CHECK_EQ(image->encoding, sensor_msgs::image_encodings::BGR8)
-        << "Incorrect image encoding, expected BGR8.";
+    if (image->encoding != sensor_msgs::image_encodings::BGR8 &&
+        image->encoding != sensor_msgs::image_encodings::RGB8) {
+      ROS_ERROR("Incorrect image encoding, expected BGR8 or RGB8.");
+    }
 
     // Do we require bigendian?
     CHECK_EQ(image->is_bigendian, 0u);
@@ -65,8 +66,13 @@ void setupRos() {
     try {
       cv_ptr = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::BGR8);
     } catch (cv_bridge::Exception& e) {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
+      try {
+        cv_ptr = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::RGB8);
+      } catch (cv_bridge::Exception& e2) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        ROS_ERROR("cv_bridge exception: %s", e2.what());
+        return;
+      }
     }
 
     // Process cv_ptr->image using OpenCV.
@@ -146,31 +152,6 @@ void setupRos() {
       *out_b = bgr[0];
     }
   }
-
-    // Fill in sparse point cloud message
-    //sensor_msgs::PointCloud2 points = pointcloud;
-    //points.data.clear();
-    //ROS_ERROR_STREAM("PCL SIZXE: " << pointcloud.data.size());
-    //points.data.resize(pointcloud.data.size());
-
-    //int i = 0;
-    //for (int u = 0; u < image.rows; ++u) {
-    //  for (int v = 0; v < image.cols; ++v, ++i) {
-
-    //    memcpy (&points.data[i * points.point_step + 0], &pointcloud.data[i * pointcloud.point_step + 0], sizeof (float));
-    //    memcpy (&points.data[i * points.point_step + 4], &pointcloud.data[i * pointcloud.point_step + 4], sizeof (float));
-    //    memcpy (&points.data[i * points.point_step + 8], &pointcloud.data[i * pointcloud.point_step + 8], sizeof (float));
-
-    //    // Fill in r, g, b local variables with image data.
-    //    // image data is in BGR8
-    //    const cv::Vec3b& bgr = image.at<cv::Vec3b>(u, v);
-    //    int32_t rgb_packed = (bgr[2] << 16) | (bgr[1] << 8) | bgr[0];
-    //    memcpy(&points.data[i * points.point_step + 12],
-    //           //&pointcloud.data[i * pointcloud.point_step + 12],
-    //          &rgb_packed,
-    //          sizeof (int32_t));
-    //  }
-    //}
 
     // Publish to network.
     pointcloud_recolor_pub_.publish(points_msg);

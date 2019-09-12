@@ -1,6 +1,6 @@
 <launch>
   <node name="pointcloud_recolor" type="pointcloud_recolor" pkg="pointcloud_recolor" output="screen">
-    <remap from="image_in"      to="/cam02/image_raw"/>
-    <remap from="pointcloud_in" to="/stereo_gray/points2"/>
+    <remap from="image_in"      to="/semantics/semantic_img"/>
+    <remap from="pointcloud_in" to="/fastereo/point_cloud"/>
   </node>
 </launch>
