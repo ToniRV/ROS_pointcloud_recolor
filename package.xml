@@ -17,5 +17,5 @@
   <build_depend>glog_catkin</build_depend>
   <build_depend>message_filters</build_depend>
   <build_depend>image_transport</build_depend>
-  <build_depend>opencv2</build_depend>
+  <build_depend>opencv3_catkin</build_depend>
 </package>
