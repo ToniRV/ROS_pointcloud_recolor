@@ -51,50 +51,45 @@ void setupRos() {
         << "Image and Pointcloud are not synchronized! If that is ok, you should"
            "make sure that the image and the pointcloud are at least registered.";
 
-    // Check image encoding: for now we need BGR8.
-    // Alternatively, modify the for loop to accept others such as BGR8.
-    if (image->encoding != sensor_msgs::image_encodings::BGR8 &&
-        image->encoding != sensor_msgs::image_encodings::RGB8) {
-      ROS_ERROR("Incorrect image encoding, expected BGR8 or RGB8.");
-    }
-
     // Do we require bigendian?
     CHECK_EQ(image->is_bigendian, 0u);
 
     // Convert the image to OpenCv.
     cv_bridge::CvImageConstPtr cv_ptr;
     try {
-      cv_ptr = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::BGR8);
-    } catch (cv_bridge::Exception& e) {
-      try {
+      if (image->encoding == sensor_msgs::image_encodings::BGR8) {
+        ROS_ERROR_ONCE("Converting BGR8 to RGB8 encoding for pointcloud recolor.");
         cv_ptr = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::RGB8);
-      } catch (cv_bridge::Exception& e2) {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        ROS_ERROR("cv_bridge exception: %s", e2.what());
-        return;
+      } else if (image->encoding == sensor_msgs::image_encodings::RGB8) {
+        cv_ptr = cv_bridge::toCvShare(image, sensor_msgs::image_encodings::RGB8);
+      } else {
+        ROS_ERROR("Incorrect image encoding, expected BGR8 or RGB8.");
       }
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
     }
 
     // Process cv_ptr->image using OpenCV.
     // TODO do we have to clone the image maybe? It is still a pointer to
     // something at this point.
-    recolorPointcloudWithImage(image, pointcloud);
+    recolorPointcloudWithImage(cv_ptr->image, pointcloud);
   }
 
   // This copies the pointcloud but this is ok as we will need to copy it anyway
   // for modification.
-  void recolorPointcloudWithImage(ImageConstPtr image_msg,
+  void recolorPointcloudWithImage(cv::Mat image_msg,
                                   PointCloud2ConstPtr pointcloud) {
-    cv::Mat_<cv::Vec3b> color(image_msg->height, image_msg->width,
-                              (cv::Vec3b*)&image_msg->data[0], image_msg->step);
+    cv::Mat_<cv::Vec3b> color(image_msg.rows, image_msg.cols,
+                              (cv::Vec3b*)&image_msg.data[0], image_msg.step);
 
     // Check that sizes agree, aka that the pointcloud given is ordered
-    if (image_msg->width != pointcloud->width ||
-        image_msg->height != pointcloud->height) {
+    if (image_msg.cols != pointcloud->width ||
+        image_msg.rows != pointcloud->height) {
       ROS_WARN_STREAM("Pointcloud width does not match with image width. "
            "The pointcloud is assumed to be ordered.\n"
-           "image.width =" << image_msg->width << '\n' <<
-           "image.height =" << image_msg->height <<'\n'<<
+           "image.width =" << image_msg.cols << '\n' <<
+           "image.height =" << image_msg.rows <<'\n'<<
            "pointcloud.width =" << pointcloud->width <<'\n'<<
            "pointcloud.height =" << pointcloud->height <<'\n'<<
            "But should have Width Image == Width pointcloud && "
@@ -146,10 +141,10 @@ void setupRos() {
       *out_y = in_y;
       *out_z = in_z;
       // Change colors
-      const cv::Vec3b& bgr = color(v,u);
-      *out_r = bgr[2];
-      *out_g = bgr[1];
-      *out_b = bgr[0];
+      const cv::Vec3b& rgb = color(v,u);
+      *out_r = rgb[0];
+      *out_g = rgb[1];
+      *out_b = rgb[2];
     }
   }
 
